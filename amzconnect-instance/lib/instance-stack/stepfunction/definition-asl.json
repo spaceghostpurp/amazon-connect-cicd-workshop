@@ -25,28 +25,37 @@
       "Type": "Pass",
       "Next": "Check If Instance Exists",
       "InputPath": "$.currentInstances.InstanceSummaryList",
-      "ResultPath": "$.existingInstance",
+      "ResultPath": "$.filteredInstances",
       "Parameters": {
-        "InstanceSummaryList.$": "$.[?(@.InstanceAlias==$.instanceAlias.resolvedAlias)]"
+        "InstanceSummaryList.$": "$[?(@.InstanceAlias==$.instanceAlias.resolvedAlias)]"
       }
     },
     "Check If Instance Exists": {
       "Type": "Choice",
       "Choices": [
         {
-          "Variable": "$.existingInstance",
-          "IsPresent": true,
-          "Next": "PutParameter"
+          "Variable": "$.filteredInstances.length",
+          "NumericGreaterThan": 0,
+          "Next": "UseExistingInstance"
         }
       ],
       "Default": "CreateInstance"
+    },
+    "UseExistingInstance": {
+      "Type": "Pass",
+      "Next": "PutParameter",
+      "ResultPath": "$.existingInstance",
+      "Parameters": {
+        "Id.$": "$.filteredInstances[0].Id",
+        "InstanceAlias.$": "$.filteredInstances[0].InstanceAlias"
+      }
     },
     "PutParameter": {
       "Type": "Task",
       "Next": "Get Bucket Name",
       "Parameters": {
         "Name": "AmazonConnectInstanceId",
-        "Value.$": "$.existingInstance[0].Id",
+        "Value.$": "$.existingInstance.Id",
         "Type": "String",
         "Overwrite": "true",
         "Description": "Amazon Connect Instance ID"
