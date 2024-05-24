@@ -25,7 +25,7 @@
       "Type": "Pass",
       "Next": "Check If Instance Exists",
       "Parameters": {
-        "instances.$": "$.currentInstances.InstanceSummaryList[?(@.InstanceAlias==$.instanceAlias.resolvedAlias)]"
+        "filtered.$": "$.currentInstances.InstanceSummaryList[?(@.InstanceAlias==$.instanceAlias.resolvedAlias)]"
       },
       "ResultPath": "$.filteredInstances"
     },
@@ -33,7 +33,7 @@
       "Type": "Choice",
       "Choices": [
         {
-          "Variable": "$.filteredInstances.instances.length",
+          "Variable": "$.filteredInstances.length",
           "NumericGreaterThan": 0,
           "Next": "UseExistingInstance"
         }
@@ -45,8 +45,8 @@
       "Next": "PutParameter",
       "ResultPath": "$.existingInstance",
       "Parameters": {
-        "Id.$": "$.filteredInstances.instances[0].Id",
-        "InstanceAlias.$": "$.filteredInstances.instances[0].InstanceAlias"
+        "Id.$": "$.filteredInstances[0].Id",
+        "InstanceAlias.$": "$.filteredInstances[0].InstanceAlias"
       }
     },
     "PutParameter": {
