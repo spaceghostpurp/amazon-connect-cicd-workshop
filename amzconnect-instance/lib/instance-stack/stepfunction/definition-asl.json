@@ -96,7 +96,7 @@
       "Type": "Task",
       "Next": "Is Instance Active?",
       "Parameters": {
-        "InstanceId.$": "$.instanceConfig.Id"
+        "InstanceId.$": "$.existingInstance.Id"
       },
       "ResultPath": "$.Status",
       "Resource": "arn:aws:states:::aws-sdk:connect:describeInstance"
@@ -158,7 +158,7 @@
       "Type": "Task",
       "Next": "Filter Hours of Operations",
       "Parameters": {
-        "InstanceId.$": "$.instanceConfig.Id"
+        "InstanceId.$": "$.existingInstance.Id"
       },
       "Resource": "arn:aws:states:::aws-sdk:connect:listHoursOfOperations",
       "ResultPath": "$.hoo"
@@ -179,7 +179,7 @@
       "Type": "Task",
       "Next": "CreateQueueMap",
       "Parameters": {
-        "InstanceId.$": "$.instanceConfig.Id"
+        "InstanceId.$": "$.existingInstance.Id"
       },
       "Resource": "arn:aws:states:::aws-sdk:connect:listQueues",
       "ResultPath": "$.existingQueues"
@@ -223,7 +223,7 @@
             "Type": "Task",
             "Parameters": {
               "HoursOfOperationId.$": "$.input.hoo.Id",
-              "InstanceId.$": "$.input.instanceConfig.Id",
+              "InstanceId.$": "$.input.existingInstance.Id",
               "Name.$": "$.queue.Name",
               "Description.$": "$.queue.Description"
             },
@@ -261,7 +261,7 @@
             "Type": "Task",
             "Next": "Check Instance Storage Associations",
             "Parameters": {
-              "InstanceId.$": "$.input2.instanceConfig.Id",
+              "InstanceId.$": "$.input2.existingInstance.Id",
               "ResourceType.$": "$.instanceStorage.ResourceType"
             },
             "Resource": "arn:aws:states:::aws-sdk:connect:listInstanceStorageConfigs",
@@ -281,7 +281,7 @@
           "AssociateInstanceStorageConfig": {
             "Type": "Task",
             "Parameters": {
-              "InstanceId.$": "$.input2.instanceConfig.Id",
+              "InstanceId.$": "$.input2.existingInstance.Id",
               "ResourceType.$": "$.instanceStorage.ResourceType",
               "StorageConfig": {
                 "StorageType": "S3",
