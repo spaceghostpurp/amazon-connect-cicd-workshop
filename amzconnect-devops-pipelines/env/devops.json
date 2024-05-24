@@ -3,7 +3,7 @@
     "account": "381492287612",
     "region": "us-east-1",
     "codestarArn": "arn:aws:codestar-connections:us-east-1:381492287612:connection/aa751dc3-c780-4a6e-8de6-8f2633af9875",
-    "repo": "forked repo here",
+    "repo": "amazon-connect-cicd-workshop",
     "owner": "spaceghostpurp",
     "email": "cpolk1981@gmail.com"
 }
