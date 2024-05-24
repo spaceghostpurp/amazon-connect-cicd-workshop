@@ -27,7 +27,7 @@
       "Parameters": {
         "filteredInstances.$": "$.currentInstances.InstanceSummaryList[?(@.InstanceAlias==$.instanceAlias.resolvedAlias)]"
       },
-      "ResultPath": "$.filteredInstances.filteredInstances"
+      "ResultPath": "$.filteredInstances"
     },
     "Check If Instance Exists": {
       "Type": "Choice",
