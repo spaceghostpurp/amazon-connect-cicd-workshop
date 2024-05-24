@@ -41,8 +41,8 @@
       "Description": "Queue for Finance"
     },
         {
-      "Name": "scn_Finance2",
-      "Description": "Queue for Finance2"
+      "Name": "scn_Finance3",
+      "Description": "Queue for Finance3"
     },
 
   ]
