@@ -33,7 +33,7 @@
       "Type": "Choice",
       "Choices": [
         {
-          "Variable": "$.filteredInstances.length",
+          "Variable": "$.filteredInstances.filtered.length",
           "NumericGreaterThan": 0,
           "Next": "UseExistingInstance"
         }
@@ -45,8 +45,8 @@
       "Next": "PutParameter",
       "ResultPath": "$.existingInstance",
       "Parameters": {
-        "Id.$": "$.filteredInstances[0].Id",
-        "InstanceAlias.$": "$.filteredInstances[0].InstanceAlias"
+        "Id.$": "$.filteredInstances.filtered[0].Id",
+        "InstanceAlias.$": "$.filteredInstances.filtered[0].InstanceAlias"
       }
     },
     "PutParameter": {
