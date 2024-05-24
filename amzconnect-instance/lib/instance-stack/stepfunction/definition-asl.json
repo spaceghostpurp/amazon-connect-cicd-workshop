@@ -24,17 +24,16 @@
     "Filter Instances": {
       "Type": "Pass",
       "Next": "Check If Instance Exists",
-      "InputPath": "$.currentInstances.InstanceSummaryList",
-      "ResultPath": "$.filteredInstances",
       "Parameters": {
-        "InstanceSummaryList.$": "$[?(@.InstanceAlias==$.instanceAlias.resolvedAlias)]"
-      }
+        "instances.$": "$.currentInstances.InstanceSummaryList[?(@.InstanceAlias==$.instanceAlias.resolvedAlias)]"
+      },
+      "ResultPath": "$.filteredInstances"
     },
     "Check If Instance Exists": {
       "Type": "Choice",
       "Choices": [
         {
-          "Variable": "$.filteredInstances.length",
+          "Variable": "$.filteredInstances.instances.length",
           "NumericGreaterThan": 0,
           "Next": "UseExistingInstance"
         }
@@ -46,8 +45,8 @@
       "Next": "PutParameter",
       "ResultPath": "$.existingInstance",
       "Parameters": {
-        "Id.$": "$.filteredInstances[0].Id",
-        "InstanceAlias.$": "$.filteredInstances[0].InstanceAlias"
+        "Id.$": "$.filteredInstances.instances[0].Id",
+        "InstanceAlias.$": "$.filteredInstances.instances[0].InstanceAlias"
       }
     },
     "PutParameter": {
