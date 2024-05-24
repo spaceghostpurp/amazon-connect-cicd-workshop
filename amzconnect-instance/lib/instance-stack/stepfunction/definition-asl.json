@@ -24,15 +24,18 @@
     "Filter Instances": {
       "Type": "Pass",
       "Next": "Check If Instance Exists",
-      "InputPath": "$..currentInstances.InstanceSummaryList[?(@.InstanceAlias==$.instanceAlias.resolvedAlias)]",
-      "ResultPath": "$.existingInstance"
+      "InputPath": "$.currentInstances.InstanceSummaryList",
+      "ResultPath": "$.existingInstance",
+      "Parameters": {
+        "InstanceSummaryList.$": "$.[?(@.InstanceAlias==$.instanceAlias.resolvedAlias)]"
+      }
     },
     "Check If Instance Exists": {
       "Type": "Choice",
       "Choices": [
         {
-          "Variable": "$.existingInstance.length",
-          "NumericGreaterThan": 0,
+          "Variable": "$.existingInstance",
+          "IsPresent": true,
           "Next": "PutParameter"
         }
       ],
