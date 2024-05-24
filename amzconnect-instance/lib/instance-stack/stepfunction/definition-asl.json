@@ -27,13 +27,13 @@
       "Parameters": {
         "filteredInstances.$": "$.currentInstances.InstanceSummaryList[?(@.InstanceAlias==$.instanceAlias.resolvedAlias)]"
       },
-      "ResultPath": "$.filteredInstances"
+      "ResultPath": "$.filteredInstances.filteredInstances"
     },
     "Check If Instance Exists": {
       "Type": "Choice",
       "Choices": [
         {
-          "Variable": "$.filteredInstances[0].Id",
+          "Variable": "$.filteredInstances.filteredInstances[0].Id",
           "IsPresent": true,
           "Next": "UseExistingInstance"
         }
@@ -45,8 +45,8 @@
       "Next": "PutParameter",
       "ResultPath": "$.existingInstance",
       "Parameters": {
-        "Id.$": "$.filteredInstances[0].Id",
-        "InstanceAlias.$": "$.filteredInstances[0].InstanceAlias"
+        "Id.$": "$.filteredInstances.filteredInstances[0].Id",
+        "InstanceAlias.$": "$.filteredInstances.filteredInstances[0].InstanceAlias"
       }
     },
     "PutParameter": {
@@ -72,7 +72,20 @@
         "InstanceAlias.$": "$.instanceAlias.resolvedAlias"
       },
       "Resource": "arn:aws:states:::aws-sdk:connect:createInstance",
-      "ResultPath": "$.instanceConfig"
+      "ResultPath": "$.instanceConfig",
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "Connect.InvalidRequestException"
+          ],
+          "Next": "HandleInstanceAlreadyExists"
+        }
+      ]
+    },
+    "HandleInstanceAlreadyExists": {
+      "Type": "Fail",
+      "Error": "InstanceAlreadyExists",
+      "Cause": "Instance alias is already used."
     },
     "Wait": {
       "Type": "Wait",
