@@ -23,20 +23,39 @@
     },
     "Filter Instances": {
       "Type": "Pass",
-      "Next": "Check If Instance Exists",
+      "Next": "Check Alias Uniqueness",
       "InputPath": "$..currentInstances.InstanceSummaryList[?(@.InstanceAlias==$.instanceAlias.resolvedAlias)]",
       "ResultPath": "$.existingInstance"
     },
-    "Check If Instance Exists": {
+    "Check Alias Uniqueness": {
       "Type": "Choice",
       "Choices": [
         {
-          "Variable": "$.existingInstance.length",
-          "NumericGreaterThan": 0,
-          "Next": "PutParameter"
+          "Variable": "$.existingInstance[0]",
+          "IsPresent": true,
+          "Next": "Generate Unique Alias"
         }
       ],
-      "Default": "CreateInstance"
+      "Default": "NeedToCreateNewInstance?"
+    },
+    "Generate Unique Alias": {
+      "Type": "Pass",
+      "Next": "NeedToCreateNewInstance?",
+      "ResultPath": "$.instanceAlias",
+      "Parameters": {
+        "resolvedAlias.$": "States.Format('{}-{}', $.instanceAlias.resolvedAlias, States.Format('{}_{}', States.Format('{}_{}', 'unique', States.Format('{}-{}', States.UUID(), States.UUID()))) )"
+      }
+    },
+    "NeedToCreateNewInstance?": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.existingInstance[0]",
+          "IsPresent": false,
+          "Next": "CreateInstance"
+        }
+      ],
+      "Default": "PutParameter"
     },
     "PutParameter": {
       "Type": "Task",
@@ -51,9 +70,20 @@
       "Resource": "arn:aws:states:::aws-sdk:ssm:putParameter",
       "ResultPath": "$.paramResult"
     },
+    "Get Bucket Name": {
+      "Type": "Task",
+      "Next": "HeadBucket",
+      "Parameters": {
+        "Name": "AmazonConnectInstanceName"
+      },
+      "Resource": "arn:aws:states:::aws-sdk:ssm:getParameter",
+      "ResultSelector": {
+        "resolvedBucketName.$": "$.Parameter.Value"
+      },
+      "ResultPath": "$.instanceStorageBucketName"
+    },
     "CreateInstance": {
       "Type": "Task",
-      "Next": "Wait",
       "Parameters": {
         "IdentityManagementType.$": "$.identityManagementType",
         "InboundCallsEnabled": "true",
@@ -61,7 +91,8 @@
         "InstanceAlias.$": "$.instanceAlias.resolvedAlias"
       },
       "Resource": "arn:aws:states:::aws-sdk:connect:createInstance",
-      "ResultPath": "$.instanceConfig"
+      "ResultPath": "$.instanceConfig",
+      "Next": "Wait"
     },
     "Wait": {
       "Type": "Wait",
@@ -87,18 +118,6 @@
         }
       ],
       "Default": "Wait"
-    },
-    "Get Bucket Name": {
-      "Type": "Task",
-      "Next": "HeadBucket",
-      "Parameters": {
-        "Name": "AmazonConnectInstanceName"
-      },
-      "Resource": "arn:aws:states:::aws-sdk:ssm:getParameter",
-      "ResultSelector": {
-        "resolvedBucketName.$": "$.Parameter.Value"
-      },
-      "ResultPath": "$.instanceStorageBucketName"
     },
     "HeadBucket": {
       "Type": "Task",
