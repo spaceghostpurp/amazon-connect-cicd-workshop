@@ -1,7 +1,7 @@
 {
     "accounts": [
     {
-        "env": "Connect-Dev",
+        "env": "dev",
         "branch": "develop",
         "enabled": true,
         "account": "381492049335",
@@ -9,7 +9,7 @@
         "app": "ACME"
     },
     {
-        "env": "Connect-Stage",
+        "env": "stage",
         "branch": "staging",
         "enabled": true,
         "account": "533267161761",
@@ -17,7 +17,7 @@
         "app": "ACME"
     },
     {
-        "env": "Connect-Prod",
+        "env": "prod",
         "branch": "main",
         "enabled": true,
         "account": "730335194307",
