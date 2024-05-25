@@ -1,6 +1,6 @@
 {
-  "instanceAlias": "scn-connect1",
-  "instanceStorageBucketName": "scn-connect1",
+  "instanceAlias": "scn-connect2",
+  "instanceStorageBucketName": "scn-connect2",
   "identityManagementType": "CONNECT_MANAGED",
   "instanceStorageConfig": [
     {
