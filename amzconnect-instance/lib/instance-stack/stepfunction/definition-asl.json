@@ -33,7 +33,7 @@
       "Type": "Choice",
       "Choices": [
         {
-          "Variable": "$.filteredInstances.filteredInstances[0].Id",
+          "Variable": "$.filteredInstances[0].Id",
           "IsPresent": true,
           "Next": "UseExistingInstance"
         }
@@ -42,16 +42,16 @@
     },
     "UseExistingInstance": {
       "Type": "Pass",
-      "Next": "PutParameter",
+      "Next": "PutParameterExisting",
       "ResultPath": "$.existingInstance",
       "Parameters": {
-        "Id.$": "$.filteredInstances.filteredInstances[0].Id",
-        "InstanceAlias.$": "$.filteredInstances.filteredInstances[0].InstanceAlias"
+        "Id.$": "$.filteredInstances[0].Id",
+        "InstanceAlias.$": "$.filteredInstances[0].InstanceAlias"
       }
     },
-    "PutParameter": {
+    "PutParameterExisting": {
       "Type": "Task",
-      "Next": "Get Bucket Name",
+      "Next": "DescribeExistingInstance",
       "Parameters": {
         "Name": "AmazonConnectInstanceId",
         "Value.$": "$.existingInstance.Id",
@@ -60,7 +60,36 @@
         "Description": "Amazon Connect Instance ID"
       },
       "Resource": "arn:aws:states:::aws-sdk:ssm:putParameter",
-      "ResultPath": "$.paramResult"
+      "ResultPath": "$.paramResultExisting"
+    },
+    "DescribeExistingInstance": {
+      "Type": "Task",
+      "Next": "Is Existing Instance Active?",
+      "Parameters": {
+        "InstanceId.$": "$.existingInstance.Id"
+      },
+      "ResultPath": "$.Status",
+      "Resource": "arn:aws:states:::aws-sdk:connect:describeInstance"
+    },
+    "Is Existing Instance Active?": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.Status.Instance.InstanceStatus",
+          "StringEquals": "ACTIVE",
+          "Next": "ProceedWithExistingInstance"
+        }
+      ],
+      "Default": "WaitExisting"
+    },
+    "WaitExisting": {
+      "Type": "Wait",
+      "Seconds": 10,
+      "Next": "DescribeExistingInstance"
+    },
+    "ProceedWithExistingInstance": {
+      "Type": "Pass",
+      "Next": "Get Bucket Name Existing"
     },
     "CreateInstance": {
       "Type": "Task",
@@ -85,46 +114,44 @@
       "Error": "InstanceAlreadyExists",
       "Cause": "Instance alias is already used."
     },
-    "WaitExisting": {
-      "Type": "Wait",
-      "Seconds": 10,
-      "Next": "DescribeExistingInstance"
-    },
     "WaitNew": {
       "Type": "Wait",
       "Seconds": 10,
       "Next": "DescribeNewInstance"
     },
-    "DescribeExistingInstance": {
-      "Type": "Task",
-      "Next": "Is Instance Active?",
-      "Parameters": {
-        "InstanceId.$": "$.existingInstance.Id"
-      },
-      "ResultPath": "$.Status",
-      "Resource": "arn:aws:states:::aws-sdk:connect:describeInstance"
-    },
     "DescribeNewInstance": {
       "Type": "Task",
-      "Next": "Is Instance Active?",
+      "Next": "Is New Instance Active?",
       "Parameters": {
         "InstanceId.$": "$.instanceConfig.Id"
       },
       "ResultPath": "$.Status",
       "Resource": "arn:aws:states:::aws-sdk:connect:describeInstance"
     },
-    "Is Instance Active?": {
+    "Is New Instance Active?": {
       "Type": "Choice",
       "Choices": [
         {
           "Variable": "$.Status.Instance.InstanceStatus",
           "StringEquals": "ACTIVE",
-          "Next": "PutParameter"
+          "Next": "Get Bucket Name New"
         }
       ],
-      "Default": "Wait"
+      "Default": "WaitNew"
     },
-    "Get Bucket Name": {
+    "Get Bucket Name Existing": {
+      "Type": "Task",
+      "Next": "HeadBucket",
+      "Parameters": {
+        "Name": "AmazonConnectInstanceName"
+      },
+      "Resource": "arn:aws:states:::aws-sdk:ssm:getParameter",
+      "ResultSelector": {
+        "resolvedBucketName.$": "$.Parameter.Value"
+      },
+      "ResultPath": "$.instanceStorageBucketName"
+    },
+    "Get Bucket Name New": {
       "Type": "Task",
       "Next": "HeadBucket",
       "Parameters": {
