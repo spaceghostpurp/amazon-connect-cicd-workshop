@@ -64,7 +64,7 @@
     },
     "CreateInstance": {
       "Type": "Task",
-      "Next": "Wait",
+      "Next": "WaitNew",
       "Parameters": {
         "IdentityManagementType.$": "$.identityManagementType",
         "InboundCallsEnabled": "true",
@@ -85,16 +85,30 @@
       "Error": "InstanceAlreadyExists",
       "Cause": "Instance alias is already used."
     },
-    "Wait": {
+    "WaitExisting": {
       "Type": "Wait",
       "Seconds": 10,
-      "Next": "DescribeInstance"
+      "Next": "DescribeExistingInstance"
     },
-    "DescribeInstance": {
+    "WaitNew": {
+      "Type": "Wait",
+      "Seconds": 10,
+      "Next": "DescribeNewInstance"
+    },
+    "DescribeExistingInstance": {
       "Type": "Task",
       "Next": "Is Instance Active?",
       "Parameters": {
         "InstanceId.$": "$.existingInstance.Id"
+      },
+      "ResultPath": "$.Status",
+      "Resource": "arn:aws:states:::aws-sdk:connect:describeInstance"
+    },
+    "DescribeNewInstance": {
+      "Type": "Task",
+      "Next": "Is Instance Active?",
+      "Parameters": {
+        "InstanceId.$": "$.instanceConfig.Id"
       },
       "ResultPath": "$.Status",
       "Resource": "arn:aws:states:::aws-sdk:connect:describeInstance"
