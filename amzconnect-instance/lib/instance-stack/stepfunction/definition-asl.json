@@ -33,7 +33,7 @@
       "Type": "Choice",
       "Choices": [
         {
-          "Variable": "$.filteredInstances[0].Id",
+          "Variable": "$.filteredInstances.filteredInstances[0].Id",
           "IsPresent": true,
           "Next": "UseExistingInstance"
         }
@@ -42,16 +42,16 @@
     },
     "UseExistingInstance": {
       "Type": "Pass",
-      "Next": "PutParameterExisting",
+      "Next": "PutParameter",
       "ResultPath": "$.existingInstance",
       "Parameters": {
-        "Id.$": "$.filteredInstances[0].Id",
-        "InstanceAlias.$": "$.filteredInstances[0].InstanceAlias"
+        "Id.$": "$.filteredInstances.filteredInstances[0].Id",
+        "InstanceAlias.$": "$.filteredInstances.filteredInstances[0].InstanceAlias"
       }
     },
-    "PutParameterExisting": {
+    "PutParameter": {
       "Type": "Task",
-      "Next": "DescribeExistingInstance",
+      "Next": "Get Bucket Name",
       "Parameters": {
         "Name": "AmazonConnectInstanceId",
         "Value.$": "$.existingInstance.Id",
@@ -60,40 +60,11 @@
         "Description": "Amazon Connect Instance ID"
       },
       "Resource": "arn:aws:states:::aws-sdk:ssm:putParameter",
-      "ResultPath": "$.paramResultExisting"
-    },
-    "DescribeExistingInstance": {
-      "Type": "Task",
-      "Next": "Is Existing Instance Active?",
-      "Parameters": {
-        "InstanceId.$": "$.existingInstance.Id"
-      },
-      "ResultPath": "$.Status",
-      "Resource": "arn:aws:states:::aws-sdk:connect:describeInstance"
-    },
-    "Is Existing Instance Active?": {
-      "Type": "Choice",
-      "Choices": [
-        {
-          "Variable": "$.Status.Instance.InstanceStatus",
-          "StringEquals": "ACTIVE",
-          "Next": "ProceedWithExistingInstance"
-        }
-      ],
-      "Default": "WaitExisting"
-    },
-    "WaitExisting": {
-      "Type": "Wait",
-      "Seconds": 10,
-      "Next": "DescribeExistingInstance"
-    },
-    "ProceedWithExistingInstance": {
-      "Type": "Pass",
-      "Next": "Get Bucket Name"
+      "ResultPath": "$.paramResult"
     },
     "CreateInstance": {
       "Type": "Task",
-      "Next": "WaitNew",
+      "Next": "Wait",
       "Parameters": {
         "IdentityManagementType.$": "$.identityManagementType",
         "InboundCallsEnabled": "true",
@@ -116,34 +87,30 @@
       "Error": "InstanceAlreadyExists",
       "Cause": "Instance alias is already used."
     },
-    "WaitNew": {
+    "Wait": {
       "Type": "Wait",
       "Seconds": 10,
-      "Next": "DescribeNewInstance"
+      "Next": "DescribeInstance"
     },
-    "DescribeNewInstance": {
+    "DescribeInstance": {
       "Type": "Task",
-      "Next": "Is New Instance Active?",
+      "Next": "Is Instance Active?",
       "Parameters": {
-        "InstanceId.$": "$.instanceConfig.Id"
+        "InstanceId.$": "$.existingInstance.Id"
       },
       "ResultPath": "$.Status",
       "Resource": "arn:aws:states:::aws-sdk:connect:describeInstance"
     },
-    "Is New Instance Active?": {
+    "Is Instance Active?": {
       "Type": "Choice",
       "Choices": [
         {
           "Variable": "$.Status.Instance.InstanceStatus",
           "StringEquals": "ACTIVE",
-          "Next": "ProceedWithNewInstance"
+          "Next": "PutParameter"
         }
       ],
-      "Default": "WaitNew"
-    },
-    "ProceedWithNewInstance": {
-      "Type": "Pass",
-      "Next": "Get Bucket Name"
+      "Default": "Wait"
     },
     "Get Bucket Name": {
       "Type": "Task",
@@ -159,7 +126,7 @@
     },
     "HeadBucket": {
       "Type": "Task",
-      "Next": "Has bucket already been created?",
+      "Next": "Has bucket already been created??",
       "Parameters": {
         "Bucket.$": "$.instanceStorageBucketName.resolvedBucketName"
       },
@@ -170,12 +137,13 @@
           "ErrorEquals": [
             "States.TaskFailed"
           ],
+          "Comment": "Bucket Doesn't Exist",
           "Next": "CreateBucket",
           "ResultPath": "$.headBucketError"
         }
       ]
     },
-    "Has bucket already been created?": {
+    "Has bucket already been created??": {
       "Type": "Choice",
       "Choices": [
         {
@@ -190,7 +158,7 @@
       "Type": "Task",
       "Next": "Filter Hours of Operations",
       "Parameters": {
-        "InstanceId.$": "$.instanceConfig.Id"
+        "InstanceId.$": "$.existingInstance.Id"
       },
       "Resource": "arn:aws:states:::aws-sdk:connect:listHoursOfOperations",
       "ResultPath": "$.hoo"
@@ -211,7 +179,7 @@
       "Type": "Task",
       "Next": "CreateQueueMap",
       "Parameters": {
-        "InstanceId.$": "$.instanceConfig.Id"
+        "InstanceId.$": "$.existingInstance.Id"
       },
       "Resource": "arn:aws:states:::aws-sdk:connect:listQueues",
       "ResultPath": "$.existingQueues"
@@ -254,8 +222,8 @@
           "CreateQueue": {
             "Type": "Task",
             "Parameters": {
-              "HoursOfOperationId.$": "$.hoo.Id",
-              "InstanceId.$": "$.instanceConfig.Id",
+              "HoursOfOperationId.$": "$.input.hoo.Id",
+              "InstanceId.$": "$.input.existingInstance.Id",
               "Name.$": "$.queue.Name",
               "Description.$": "$.queue.Description"
             },
@@ -293,7 +261,7 @@
             "Type": "Task",
             "Next": "Check Instance Storage Associations",
             "Parameters": {
-              "InstanceId.$": "$.instanceConfig.Id",
+              "InstanceId.$": "$.input2.existingInstance.Id",
               "ResourceType.$": "$.instanceStorage.ResourceType"
             },
             "Resource": "arn:aws:states:::aws-sdk:connect:listInstanceStorageConfigs",
@@ -313,7 +281,7 @@
           "AssociateInstanceStorageConfig": {
             "Type": "Task",
             "Parameters": {
-              "InstanceId.$": "$.instanceConfig.Id",
+              "InstanceId.$": "$.input2.existingInstance.Id",
               "ResourceType.$": "$.instanceStorage.ResourceType",
               "StorageConfig": {
                 "StorageType": "S3",
