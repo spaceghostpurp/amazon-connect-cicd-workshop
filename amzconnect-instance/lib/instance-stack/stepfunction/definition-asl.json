@@ -33,7 +33,7 @@
       "Type": "Choice",
       "Choices": [
         {
-          "Variable": "$.filteredInstances.filteredInstances[0].Id",
+          "Variable": "$.filteredInstances[0].Id",
           "IsPresent": true,
           "Next": "UseExistingInstance"
         }
@@ -45,8 +45,8 @@
       "Next": "PutParameterExisting",
       "ResultPath": "$.existingInstance",
       "Parameters": {
-        "Id.$": "$.filteredInstances.filteredInstances[0].Id",
-        "InstanceAlias.$": "$.filteredInstances.filteredInstances[0].InstanceAlias"
+        "Id.$": "$.filteredInstances[0].Id",
+        "InstanceAlias.$": "$.filteredInstances[0].InstanceAlias"
       }
     },
     "PutParameterExisting": {
@@ -104,7 +104,9 @@
       "ResultPath": "$.instanceConfig",
       "Catch": [
         {
-          "ErrorEquals": ["Connect.InvalidRequestException"],
+          "ErrorEquals": [
+            "Connect.InvalidRequestException"
+          ],
           "Next": "HandleInstanceAlreadyExists"
         }
       ]
@@ -165,7 +167,9 @@
       "ResultPath": "$.headBucket",
       "Catch": [
         {
-          "ErrorEquals": ["States.TaskFailed"],
+          "ErrorEquals": [
+            "States.TaskFailed"
+          ],
           "Next": "CreateBucket",
           "ResultPath": "$.headBucketError"
         }
@@ -186,7 +190,7 @@
       "Type": "Task",
       "Next": "Filter Hours of Operations",
       "Parameters": {
-        "InstanceId.$": "$.Status.Instance.Id"
+        "InstanceId.$": "$.instanceConfig.Id"
       },
       "Resource": "arn:aws:states:::aws-sdk:connect:listHoursOfOperations",
       "ResultPath": "$.hoo"
@@ -207,7 +211,7 @@
       "Type": "Task",
       "Next": "CreateQueueMap",
       "Parameters": {
-        "InstanceId.$": "$.Status.Instance.Id"
+        "InstanceId.$": "$.instanceConfig.Id"
       },
       "Resource": "arn:aws:states:::aws-sdk:connect:listQueues",
       "ResultPath": "$.existingQueues"
@@ -250,8 +254,8 @@
           "CreateQueue": {
             "Type": "Task",
             "Parameters": {
-              "HoursOfOperationId.$": "$.input.hoo.Id",
-              "InstanceId.$": "$.Status.Instance.Id",
+              "HoursOfOperationId.$": "$.hoo.Id",
+              "InstanceId.$": "$.instanceConfig.Id",
               "Name.$": "$.queue.Name",
               "Description.$": "$.queue.Description"
             },
@@ -289,7 +293,7 @@
             "Type": "Task",
             "Next": "Check Instance Storage Associations",
             "Parameters": {
-              "InstanceId.$": "$.Status.Instance.Id",
+              "InstanceId.$": "$.instanceConfig.Id",
               "ResourceType.$": "$.instanceStorage.ResourceType"
             },
             "Resource": "arn:aws:states:::aws-sdk:connect:listInstanceStorageConfigs",
@@ -309,7 +313,7 @@
           "AssociateInstanceStorageConfig": {
             "Type": "Task",
             "Parameters": {
-              "InstanceId.$": "$.Status.Instance.Id",
+              "InstanceId.$": "$.instanceConfig.Id",
               "ResourceType.$": "$.instanceStorage.ResourceType",
               "StorageConfig": {
                 "StorageType": "S3",
