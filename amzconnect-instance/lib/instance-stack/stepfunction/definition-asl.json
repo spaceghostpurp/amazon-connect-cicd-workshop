@@ -186,7 +186,7 @@
       "Type": "Task",
       "Next": "Filter Hours of Operations",
       "Parameters": {
-        "InstanceId.$": "$.Status.Instance.InstanceId"
+        "InstanceId.$": "$.Status.Instance.Id"
       },
       "Resource": "arn:aws:states:::aws-sdk:connect:listHoursOfOperations",
       "ResultPath": "$.hoo"
@@ -207,7 +207,7 @@
       "Type": "Task",
       "Next": "CreateQueueMap",
       "Parameters": {
-        "InstanceId.$": "$.Status.Instance.InstanceId"
+        "InstanceId.$": "$.Status.Instance.Id"
       },
       "Resource": "arn:aws:states:::aws-sdk:connect:listQueues",
       "ResultPath": "$.existingQueues"
@@ -251,7 +251,7 @@
             "Type": "Task",
             "Parameters": {
               "HoursOfOperationId.$": "$.input.hoo.Id",
-              "InstanceId.$": "$.Status.Instance.InstanceId",
+              "InstanceId.$": "$.Status.Instance.Id",
               "Name.$": "$.queue.Name",
               "Description.$": "$.queue.Description"
             },
@@ -289,7 +289,7 @@
             "Type": "Task",
             "Next": "Check Instance Storage Associations",
             "Parameters": {
-              "InstanceId.$": "$.Status.Instance.InstanceId",
+              "InstanceId.$": "$.Status.Instance.Id",
               "ResourceType.$": "$.instanceStorage.ResourceType"
             },
             "Resource": "arn:aws:states:::aws-sdk:connect:listInstanceStorageConfigs",
@@ -309,7 +309,7 @@
           "AssociateInstanceStorageConfig": {
             "Type": "Task",
             "Parameters": {
-              "InstanceId.$": "$.Status.Instance.InstanceId",
+              "InstanceId.$": "$.Status.Instance.Id",
               "ResourceType.$": "$.instanceStorage.ResourceType",
               "StorageConfig": {
                 "StorageType": "S3",
